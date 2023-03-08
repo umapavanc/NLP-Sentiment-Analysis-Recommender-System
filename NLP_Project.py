@@ -3,7 +3,7 @@
 
 # ### Data Exploration
 
-# In[72]:
+# In[1]:
 
 
 import pandas as pd
@@ -23,10 +23,10 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
-df = getDF('/content/drive/MyDrive/Centennial/NLP/Office_Products_5.json.gz')
+df = getDF("./Office_Products_5.json.gz")
 
 
-# In[73]:
+# In[2]:
 
 
 df
@@ -51,19 +51,19 @@ df
 # 
 # Source: https://nijianmo.github.io/amazon/index.html#code
 
-# In[74]:
+# In[3]:
 
 
 df.shape
 
 
-# In[75]:
+# In[4]:
 
 
 df.columns
 
 
-# In[76]:
+# In[5]:
 
 
 counts_of_reviews_per_product = df.groupby('asin').size()
@@ -72,13 +72,13 @@ for product, count_of_reviews_per_product in counts_of_reviews_per_product.iteri
 # counts_of_reviews_per_product
 
 
-# In[77]:
+# In[6]:
 
 
 len(counts_of_reviews_per_product)
 
 
-# In[78]:
+# In[7]:
 
 
 import matplotlib.pyplot as plt
@@ -92,13 +92,13 @@ plt.title('Distribution of the Number of Reviews Across Products')
 plt.show()
 
 
-# In[79]:
+# In[8]:
 
 
 counts_of_reviews_per_product[:10]
 
 
-# In[80]:
+# In[9]:
 
 
 plt.figure(figsize=(25,8))
@@ -109,7 +109,7 @@ plt.title('Distribution of the number of reviews per product')
 plt.show()
 
 
-# In[81]:
+# In[10]:
 
 
 counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
@@ -118,7 +118,7 @@ counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
 counts_of_reviews_across_products[:10]
 
 
-# In[82]:
+# In[11]:
 
 
 # Unstack the data to create a pivot table with product ids as rows and review ratings as columns
@@ -132,7 +132,7 @@ plt.title('Distribution of the number of reviews per product per star rating')
 plt.show()
 
 
-# In[83]:
+# In[12]:
 
 
 counts_of_reviews_per_user = df.groupby('reviewerID').size()
@@ -140,7 +140,7 @@ for user, count_of_review in counts_of_reviews_per_user.iteritems():
   print(f'{user} has {count_of_review} reviews')
 
 
-# In[84]:
+# In[13]:
 
 
 plt.figure(figsize=(25,8))
@@ -151,7 +151,7 @@ plt.title('Distribution of the number of reviews per user')
 plt.show()
 
 
-# In[141]:
+# In[14]:
 
 
 positive = df[df['overall'] > 3]
@@ -160,13 +160,14 @@ positive = positive.dropna()
 negative = negative.dropna()
 
 
-# In[142]:
+# In[16]:
 
 
 # common words in positive review comments
 import nltk
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
+get_ipython().system('pip install wordcloud')
 from wordcloud import WordCloud
 
 stopwords = set(stopwords.words('english'))
@@ -179,7 +180,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[143]:
+# In[17]:
 
 
 # common words in negative review comments
@@ -194,7 +195,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[85]:
+# In[18]:
 
 
 df['reviewText']
@@ -202,7 +203,7 @@ df['reviewText']
 
 # ### Pre-processing
 
-# In[123]:
+# In[19]:
 
 
 import random
@@ -210,19 +211,19 @@ n_samples = random.randint(500, 1000)
 df_random = df.sample(n=n_samples)
 
 
-# In[125]:
+# In[20]:
 
 
 df_random.shape
 
 
-# In[126]:
+# In[21]:
 
 
 df_random
 
 
-# In[127]:
+# In[22]:
 
 
 def condition(overall):
@@ -238,31 +239,31 @@ def condition(overall):
 df_random['label'] = df_random['overall'].apply(condition)
 
 
-# In[128]:
+# In[23]:
 
 
 df_random
 
 
-# In[129]:
+# In[24]:
 
 
 final_df = pd.DataFrame(df_random['reviewText']) 
 
 
-# In[130]:
+# In[25]:
 
 
 type(final_df)
 
 
-# In[131]:
+# In[26]:
 
 
 final_df
 
 
-# In[146]:
+# In[27]:
 
 
 import nltk
@@ -297,14 +298,14 @@ for _, review in final_df.iterrows():
 
 # #### VADR
 
-# In[133]:
+# In[28]:
 
 
 get_ipython().system('pip install vaderSentiment')
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-# In[134]:
+# In[29]:
 
 
 # Valence Aware Dictionary and Sentiment Reasoner (VADR)
@@ -329,21 +330,16 @@ for index, row in df_random.head().iterrows():
     predicted_sentiments.append(sentiment)
 
 
-# In[135]:
-
-
-(predicted_sentiments == df_random['label'][:5]).value_counts()
-
-
 # #### TextBlob
 
-# In[136]:
+# In[32]:
 
 
+get_ipython().system('pip install textblob')
 from textblob import TextBlob
 
 
-# In[137]:
+# In[33]:
 
 
 list(final_df['reviewText'])
@@ -351,9 +347,29 @@ list(final_df['reviewText'])
 
 # ### Validation
 
-# In[138]:
+# In[34]:
 
 
+# VADR
+predicted_sentiments = []
+for index, row in df_random.iterrows():
+    # Pass analyzer
+    vs = VADR_analyzer.polarity_scores(row["reviewText"])
+    if vs['neg'] > vs['pos']:
+      sentiment = 'Negative'
+    elif vs['pos'] > vs['neg']:
+      sentiment= 'Positive'
+    else:
+      sentiment = 'Neutral'
+    predicted_sentiments.append(sentiment)
+
+(predicted_sentiments == df_random['label']).value_counts()
+
+
+# In[35]:
+
+
+# TextBlob
 predicted_sentiments = []
 for text in list(final_df['reviewText']):
   if isinstance(text, str):
@@ -361,7 +377,7 @@ for text in list(final_df['reviewText']):
     predicted_sentiments.append(wiki.sentiment)
 
 
-# In[139]:
+# In[36]:
 
 
 predicted_ratings = []
@@ -374,8 +390,14 @@ for predicted_sentiment in predicted_sentiments:
     predicted_ratings.append('Positive')
 
 
-# In[140]:
+# In[37]:
 
 
 (predicted_ratings == df_random['label']).value_counts()
+
+
+# In[ ]:
+
+
+
 
