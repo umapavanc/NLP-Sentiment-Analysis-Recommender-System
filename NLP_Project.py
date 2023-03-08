@@ -3,7 +3,7 @@
 
 # ### Data Exploration
 
-# In[1]:
+# In[4]:
 
 
 import pandas as pd
@@ -26,10 +26,10 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
-df = getDF("../Office_Products_5.json.gz")
+df = getDF("/content/drive/MyDrive/Centennial/NLP/Office_Products_5.json.gz")
 
 
-# In[2]:
+# In[6]:
 
 
 df
@@ -54,13 +54,13 @@ df
 # 
 # Source: https://nijianmo.github.io/amazon/index.html#code
 
-# In[3]:
+# In[7]:
 
 
 df.info()
 
 
-# In[4]:
+# In[8]:
 
 
 df.describe()
@@ -68,19 +68,19 @@ df.describe()
 # Observation1: Average of review rating is around 4.47 which might imply that dataset contains more positive reviews.
 
 
-# In[5]:
+# In[9]:
 
 
 df.shape
 
 
-# In[6]:
+# In[10]:
 
 
 df.columns
 
 
-# In[7]:
+# In[11]:
 
 
 print("Count of null values: ", df['reviewText'].isnull().sum())
@@ -91,7 +91,7 @@ for index in (nullIndexes):
     print("Index:", index)
 
 
-# In[8]:
+# In[12]:
 
 
 df["overall"].value_counts()
@@ -99,7 +99,7 @@ df["overall"].value_counts()
 # Observation3: Dataset need to be balanced for ML approach
 
 
-# In[9]:
+# In[13]:
 
 
 df[df["reviewText"].isnull()].overall.value_counts()
@@ -108,7 +108,7 @@ df[df["reviewText"].isnull()].overall.value_counts()
 # Options to handle null values: Filling with a constant value, delete those rows, or text imputation techniques
 
 
-# In[10]:
+# In[14]:
 
 
 # Distribution of the number of reviews across products
@@ -123,7 +123,7 @@ plt.ylabel('Number of products')
 plt.show()
 
 
-# In[11]:
+# In[15]:
 
 
 # Group the reviews by product ID and count the number of reviews per product
@@ -136,7 +136,7 @@ plt.xlabel('Number of reviews per product')
 plt.show()
 
 
-# In[12]:
+# In[16]:
 
 
 # Calculate the average number of reviews per product
@@ -148,7 +148,7 @@ plt.figure(figsize=(15,5))
 sns.histplot(reviews_per_product_df_/avg_reviews_per_product, bins=20)
 
 
-# In[13]:
+# In[17]:
 
 
 # Group the reviews by user ID and count the number of reviews per user
@@ -161,19 +161,19 @@ plt.xlabel('Number of reviews per user')
 plt.show()
 
 
-# In[14]:
+# In[18]:
 
 
 sns.kdeplot(reviews_per_user['review_count'])
 
 
-# In[15]:
+# In[19]:
 
 
 print("Average review per product:", avg_reviews_per_product)
 
 
-# In[16]:
+# In[20]:
 
 
 counts_of_reviews_per_product = df.groupby('asin').size()
@@ -182,13 +182,13 @@ for product, count_of_reviews_per_product in counts_of_reviews_per_product.iteri
 # counts_of_reviews_per_product
 
 
-# In[17]:
+# In[21]:
 
 
 len(counts_of_reviews_per_product)
 
 
-# In[18]:
+# In[22]:
 
 
 import matplotlib.pyplot as plt
@@ -202,13 +202,13 @@ plt.title('Distribution of the Number of Reviews Across Products')
 plt.show()
 
 
-# In[19]:
+# In[23]:
 
 
 counts_of_reviews_per_product[:10]
 
 
-# In[20]:
+# In[24]:
 
 
 plt.figure(figsize=(25,8))
@@ -219,7 +219,7 @@ plt.title('Distribution of the number of reviews per product')
 plt.show()
 
 
-# In[21]:
+# In[25]:
 
 
 counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
@@ -228,7 +228,7 @@ counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
 counts_of_reviews_across_products[:10]
 
 
-# In[45]:
+# In[26]:
 
 
 # Unstack the data to create a pivot table with product ids as rows and review ratings as columns
@@ -242,7 +242,7 @@ plt.title('Distribution of the number of reviews per product per star rating')
 plt.show()
 
 
-# In[23]:
+# In[27]:
 
 
 counts_of_reviews_per_user = df.groupby('reviewerID').size()
@@ -250,7 +250,7 @@ for user, count_of_review in counts_of_reviews_per_user.iteritems():
   print(f'{user} has {count_of_review} reviews')
 
 
-# In[24]:
+# In[28]:
 
 
 plt.figure(figsize=(25,8))
@@ -261,7 +261,7 @@ plt.title('Distribution of the number of reviews per user')
 plt.show()
 
 
-# In[25]:
+# In[29]:
 
 
 positive = df[df['overall'] > 3]
@@ -270,7 +270,14 @@ positive = positive.dropna()
 negative = negative.dropna()
 
 
-# In[26]:
+# In[31]:
+
+
+import nltk
+nltk.download('stopwords')
+
+
+# In[32]:
 
 
 # common words in positive review comments
@@ -289,7 +296,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[27]:
+# In[33]:
 
 
 # common words in negative review comments
@@ -304,7 +311,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[28]:
+# In[34]:
 
 
 df['reviewText']
@@ -312,7 +319,7 @@ df['reviewText']
 
 # ### Pre-processing
 
-# In[29]:
+# In[35]:
 
 
 # Initial trail deleting the rows with null values
@@ -323,14 +330,14 @@ Verify the summary column is null if reviewText is null
 df.dropna(subset=['reviewText'], inplace=True)
 
 
-# In[30]:
+# In[36]:
 
 
 print("Count of null values after the action: ",df["reviewText"].isnull().sum(), "\n")
 df.info()
 
 
-# In[31]:
+# In[37]:
 
 
 import random
@@ -338,19 +345,19 @@ n_samples = random.randint(500, 1000)
 df_random = df.sample(n=n_samples)
 
 
-# In[32]:
+# In[38]:
 
 
 df_random.shape
 
 
-# In[33]:
+# In[39]:
 
 
 df_random
 
 
-# In[34]:
+# In[40]:
 
 
 def condition(overall):
@@ -366,26 +373,26 @@ def condition(overall):
 df_random['label'] = df_random['overall'].apply(condition)
 
 
-# In[35]:
+# In[41]:
 
 
 df_random
 
 
-# In[36]:
+# In[42]:
 
 
 # Chose the appropriate columns for your sentiment analyzer.
 final_df = pd.DataFrame(df_random[['reviewText', 'label']]) 
 
 
-# In[37]:
+# In[43]:
 
 
 type(final_df)
 
 
-# In[38]:
+# In[44]:
 
 
 final_df
@@ -397,7 +404,7 @@ final_df
 #     Stopword removal (removing common words like "the" or "and")
 #     Lemmatization (reducing words to their base form)
 
-# In[39]:
+# In[45]:
 
 
 import nltk
@@ -427,13 +434,20 @@ for _, review in final_df.iterrows():
     words.append([word for word in nltk.word_tokenize(sentence)])
 
 
-# In[40]:
+# In[46]:
 
 
 words
 
 
-# In[41]:
+# In[50]:
+
+
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+
+
+# In[51]:
 
 
 # Lemmatization
@@ -449,7 +463,7 @@ for i, text in enumerate(lemmatized_samples):
     print(lemmatized_samples[i])
 
 
-# In[42]:
+# In[52]:
 
 
 # Store back into lemmatized_df
@@ -458,19 +472,19 @@ for i, row in enumerate(lemmatized_df["reviewText"]):
     lemmatized_df["reviewText"].iloc[i] = lemmatized_samples[i]
 
 
-# In[43]:
+# In[53]:
 
 
 lemmatized_df
 
 
-# In[47]:
+# In[54]:
 
 
 lemmatized_df["reviewText"].isnull().any()
 
 
-# In[49]:
+# In[55]:
 
 
 X_tfidf = []
@@ -494,14 +508,14 @@ for sent in lemmatized_samples:
 
 # #### VADR
 
-# In[50]:
+# In[56]:
 
 
 get_ipython().system('pip install vaderSentiment')
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-# In[51]:
+# In[57]:
 
 
 # Valence Aware Dictionary and Sentiment Reasoner (VADR)
@@ -527,14 +541,14 @@ for index, row in final_df.head().iterrows():
 
 # #### TextBlob
 
-# In[52]:
+# In[58]:
 
 
 get_ipython().system('pip install textblob')
 from textblob import TextBlob
 
 
-# In[53]:
+# In[59]:
 
 
 # Print for head 5 rows
@@ -564,7 +578,7 @@ for index, row in final_df.head().iterrows():
 
 # #### SENTIWORDNET
 
-# In[54]:
+# In[60]:
 
 
 from nltk.corpus import sentiwordnet as swn
@@ -596,7 +610,7 @@ def sw_review_sentiment_score(review):
     return sentiment_score / len(tokens)
 
 
-# In[55]:
+# In[61]:
 
 
 # Print for head 5 rows
@@ -623,7 +637,7 @@ for index, row in final_df.head().iterrows():
 
 # ### Validation
 
-# In[56]:
+# In[103]:
 
 
 # VADR
@@ -642,7 +656,7 @@ for index, row in final_df.iterrows():
 (predicted_sentiments_vadr == df_random['label']).value_counts()
 
 
-# In[57]:
+# In[104]:
 
 
 count = (predicted_sentiments_vadr == df_random['label']).value_counts()
@@ -650,7 +664,22 @@ accuracy = count[True]/(count[True]+count[False]) * 100
 accuracy
 
 
-# In[58]:
+# In[105]:
+
+
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+
+confusion_matrix(df_random['label'], predicted_sentiments_vadr)
+
+
+# In[106]:
+
+
+print(classification_report(df_random['label'], predicted_sentiments_vadr))
+
+
+# In[107]:
 
 
 # TextBlob
@@ -661,7 +690,7 @@ for text in list(final_df['reviewText']):
     predicted_sentiments.append(wiki.sentiment)
 
 
-# In[59]:
+# In[108]:
 
 
 predicted_ratings_txt = []
@@ -674,13 +703,13 @@ for predicted_sentiment in predicted_sentiments:
     predicted_ratings_txt.append('Positive')
 
 
-# In[60]:
+# In[109]:
 
 
 (predicted_ratings_txt == df_random['label']).value_counts()
 
 
-# In[61]:
+# In[110]:
 
 
 count = (predicted_ratings_txt == df_random['label']).value_counts()
@@ -688,7 +717,19 @@ accuracy = count[True]/(count[True]+count[False]) * 100
 accuracy
 
 
-# In[62]:
+# In[111]:
+
+
+confusion_matrix(df_random['label'], predicted_ratings_txt)
+
+
+# In[112]:
+
+
+print(classification_report(df_random['label'], predicted_ratings_txt))
+
+
+# In[113]:
 
 
 # SENTIWORDNET
@@ -708,7 +749,7 @@ for review in final_df['reviewText']:
         predicted_sentiments_senti.append('Neutral')
 
 
-# In[63]:
+# In[114]:
 
 
 count = (predicted_sentiments_senti == df_random['label']).value_counts()
@@ -716,9 +757,21 @@ accuracy = count[True]/(count[True]+count[False]) * 100
 accuracy
 
 
+# In[115]:
+
+
+confusion_matrix(df_random['label'], predicted_sentiments_senti)
+
+
+# In[116]:
+
+
+print(classification_report(df_random['label'], predicted_sentiments_senti))
+
+
 # ### Validation with Preprocessed data
 
-# In[64]:
+# In[117]:
 
 
 # VADR
@@ -737,7 +790,7 @@ for index, row in lemmatized_df.iterrows():
 (predicted_sentiments_vadr == final_df['label']).value_counts()
 
 
-# In[65]:
+# In[118]:
 
 
 count = (predicted_sentiments_vadr == df_random['label']).value_counts()
@@ -745,7 +798,19 @@ accuracy = count[True]/(count[True]+count[False]) * 100
 accuracy
 
 
-# In[66]:
+# In[119]:
+
+
+confusion_matrix(df_random['label'], predicted_sentiments_vadr)
+
+
+# In[120]:
+
+
+print(classification_report(df_random['label'], predicted_sentiments_senti))
+
+
+# In[121]:
 
 
 # TextBlob
@@ -755,7 +820,7 @@ for text in list(lemmatized_df['reviewText']):
     predicted_sentiments.append(wiki.sentiment)
 
 
-# In[67]:
+# In[122]:
 
 
 predicted_ratings_txt = []
@@ -768,13 +833,13 @@ for predicted_sentiment in predicted_sentiments:
     predicted_ratings_txt.append('Positive')
 
 
-# In[68]:
+# In[123]:
 
 
 (predicted_ratings_txt == final_df['label']).value_counts()
 
 
-# In[69]:
+# In[124]:
 
 
 count = (predicted_ratings_txt == df_random['label']).value_counts()
@@ -782,7 +847,19 @@ accuracy = count[True]/(count[True]+count[False]) * 100
 accuracy
 
 
-# In[70]:
+# In[125]:
+
+
+confusion_matrix(df_random['label'], predicted_ratings_txt)
+
+
+# In[126]:
+
+
+print(classification_report(df_random['label'], predicted_ratings_txt))
+
+
+# In[127]:
 
 
 # SENTIWORDNET
@@ -803,7 +880,7 @@ for review in final_df['reviewText']:
         predicted_sentiments_senti.append('Neutral')
 
 
-# In[71]:
+# In[128]:
 
 
 count = (predicted_sentiments_senti == final_df['label']).value_counts()
@@ -812,8 +889,14 @@ print(count)
 print(accuracy)
 
 
-# In[ ]:
+# In[129]:
 
 
+confusion_matrix(df_random['label'], predicted_sentiments_senti)
 
+
+# In[130]:
+
+
+print(classification_report(df_random['label'], predicted_sentiments_senti))
 
