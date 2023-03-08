@@ -3,7 +3,7 @@
 
 # ### Data Exploration
 
-# In[1]:
+# In[65]:
 
 
 import pandas as pd
@@ -23,10 +23,10 @@ def getDF(path):
     i += 1
   return pd.DataFrame.from_dict(df, orient='index')
 
-df = getDF("./Office_Products_5.json.gz")
+df = getDF("../Office_Products_5.json.gz")
 
 
-# In[2]:
+# In[66]:
 
 
 df
@@ -51,19 +51,19 @@ df
 # 
 # Source: https://nijianmo.github.io/amazon/index.html#code
 
-# In[3]:
+# In[67]:
 
 
 df.shape
 
 
-# In[4]:
+# In[68]:
 
 
 df.columns
 
 
-# In[5]:
+# In[69]:
 
 
 counts_of_reviews_per_product = df.groupby('asin').size()
@@ -72,13 +72,13 @@ for product, count_of_reviews_per_product in counts_of_reviews_per_product.iteri
 # counts_of_reviews_per_product
 
 
-# In[6]:
+# In[70]:
 
 
 len(counts_of_reviews_per_product)
 
 
-# In[7]:
+# In[71]:
 
 
 import matplotlib.pyplot as plt
@@ -92,13 +92,13 @@ plt.title('Distribution of the Number of Reviews Across Products')
 plt.show()
 
 
-# In[8]:
+# In[72]:
 
 
 counts_of_reviews_per_product[:10]
 
 
-# In[9]:
+# In[73]:
 
 
 plt.figure(figsize=(25,8))
@@ -109,7 +109,7 @@ plt.title('Distribution of the number of reviews per product')
 plt.show()
 
 
-# In[10]:
+# In[74]:
 
 
 counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
@@ -118,11 +118,11 @@ counts_of_reviews_across_products = df.groupby(['asin', 'overall']).size()
 counts_of_reviews_across_products[:10]
 
 
-# In[11]:
+# In[ ]:
 
 
 # Unstack the data to create a pivot table with product ids as rows and review ratings as columns
-reviews_by_product_and_rating = counts_of_reviews_across_products[:10].unstack()
+reviews_by_product_and_rating = counts_of_reviews_across_products[:20].unstack()
 
 # Plot the distribution of the number of reviews per product per star rating as a histogram
 reviews_by_product_and_rating.plot(kind='bar', stacked=True)
@@ -132,7 +132,7 @@ plt.title('Distribution of the number of reviews per product per star rating')
 plt.show()
 
 
-# In[12]:
+# In[ ]:
 
 
 counts_of_reviews_per_user = df.groupby('reviewerID').size()
@@ -160,7 +160,7 @@ positive = positive.dropna()
 negative = negative.dropna()
 
 
-# In[16]:
+# In[15]:
 
 
 # common words in positive review comments
@@ -171,7 +171,7 @@ get_ipython().system('pip install wordcloud')
 from wordcloud import WordCloud
 
 stopwords = set(stopwords.words('english'))
-stopwords.update(["br", "stuff", "href","taste", "product", "flavour","like", "coffee", "dog","flavor","buy"]) 
+stopwords.update(["br", "stuff", "href","taste", "product", "flavour","like", "coffee", "dog","flavor","buy"]) # need detemination
 
 pos = " ".join(review for review in positive.reviewText)
 wordcloud = WordCloud(stopwords=stopwords).generate(pos)
@@ -180,7 +180,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[17]:
+# In[16]:
 
 
 # common words in negative review comments
@@ -195,7 +195,7 @@ plt.axis("off")
 plt.show()
 
 
-# In[18]:
+# In[17]:
 
 
 df['reviewText']
@@ -203,7 +203,7 @@ df['reviewText']
 
 # ### Pre-processing
 
-# In[19]:
+# In[18]:
 
 
 import random
@@ -211,19 +211,19 @@ n_samples = random.randint(500, 1000)
 df_random = df.sample(n=n_samples)
 
 
-# In[20]:
+# In[19]:
 
 
 df_random.shape
 
 
-# In[21]:
+# In[20]:
 
 
 df_random
 
 
-# In[22]:
+# In[21]:
 
 
 def condition(overall):
@@ -239,31 +239,31 @@ def condition(overall):
 df_random['label'] = df_random['overall'].apply(condition)
 
 
-# In[23]:
+# In[22]:
 
 
 df_random
 
 
-# In[24]:
+# In[23]:
 
 
 final_df = pd.DataFrame(df_random['reviewText']) 
 
 
-# In[25]:
+# In[24]:
 
 
 type(final_df)
 
 
-# In[26]:
+# In[25]:
 
 
 final_df
 
 
-# In[27]:
+# In[26]:
 
 
 import nltk
@@ -298,14 +298,14 @@ for _, review in final_df.iterrows():
 
 # #### VADR
 
-# In[28]:
+# In[27]:
 
 
 get_ipython().system('pip install vaderSentiment')
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-# In[29]:
+# In[28]:
 
 
 # Valence Aware Dictionary and Sentiment Reasoner (VADR)
@@ -332,26 +332,66 @@ for index, row in df_random.head().iterrows():
 
 # #### TextBlob
 
-# In[32]:
+# In[29]:
 
 
 get_ipython().system('pip install textblob')
 from textblob import TextBlob
 
 
-# In[33]:
+# In[30]:
 
 
 list(final_df['reviewText'])
 
 
+# In[ ]:
+
+
+# Plot first 10
+
+
+# #### SENTIWORDNET
+
+# In[82]:
+
+
+from nltk.corpus import sentiwordnet as swn
+from nltk.tokenize import word_tokenize
+from nltk.wsd import lesk
+
+# Download necessary resources
+nltk.download('averaged_perceptron_tagger')
+nltk.download('sentiwordnet')
+
+# function to calculate the sentiment score for each word using SentiWordNet
+def sw_sentiment_score(word, tag):
+    synsets = list(swn.senti_synsets(word, tag))
+    if synsets:
+        pos_score = synsets[0].pos_score()
+        neg_score = synsets[0].neg_score()
+        return pos_score - neg_score
+    else:
+        return 0
+
+# function to calculate the overall sentiment score for each review
+def sw_review_sentiment_score(review):
+    tokens = word_tokenize(review)
+    sentiment_score = 0
+    for token in tokens:
+        synset = lesk(tokens, token)
+        if synset:
+            sentiment_score += sw_sentiment_score(synset.lemmas()[0].name(), synset.pos())
+    return sentiment_score / len(tokens)
+
+
 # ### Validation
 
-# In[34]:
+# In[42]:
 
 
 # VADR
-predicted_sentiments = []
+predicted_sentiments_vadr = []
 for index, row in df_random.iterrows():
     # Pass analyzer
     vs = VADR_analyzer.polarity_scores(row["reviewText"])
@@ -361,12 +401,20 @@ for index, row in df_random.iterrows():
       sentiment= 'Positive'
     else:
       sentiment = 'Neutral'
-    predicted_sentiments.append(sentiment)
+    predicted_sentiments_vadr.append(sentiment)
 
-(predicted_sentiments == df_random['label']).value_counts()
+(predicted_sentiments_vadr == df_random['label']).value_counts()
 
 
-# In[35]:
+# In[62]:
+
+
+count = (predicted_sentiments_vadr == df_random['label']).value_counts()
+accuracy = count[True]/(count[True]+count[False]) * 100
+accuracy
+
+
+# In[44]:
 
 
 # TextBlob
@@ -377,27 +425,57 @@ for text in list(final_df['reviewText']):
     predicted_sentiments.append(wiki.sentiment)
 
 
-# In[36]:
+# In[45]:
 
 
-predicted_ratings = []
+predicted_ratings_txt = []
 for predicted_sentiment in predicted_sentiments:
   if predicted_sentiment.polarity == 0:
-    predicted_ratings.append('Neutral')
+    predicted_ratings_txt.append('Neutral')
   elif predicted_sentiment.polarity < 0 :
-    predicted_ratings.append('Negative')
+    predicted_ratings_txt.append('Negative')
   elif predicted_sentiment.polarity > 0 :
-    predicted_ratings.append('Positive')
+    predicted_ratings_txt.append('Positive')
 
 
-# In[37]:
+# In[46]:
 
 
-(predicted_ratings == df_random['label']).value_counts()
+(predicted_ratings_txt == df_random['label']).value_counts()
 
 
-# In[ ]:
+# In[64]:
 
 
+count = (predicted_ratings_txt == df_random['label']).value_counts()
+accuracy = count[True]/(count[True]+count[False]) * 100
+accuracy
 
+
+# In[84]:
+
+
+# SENTIWORDNET
+
+predicted_sentiments_senti = []
+# Classifing each review into positive, negative, or neutral sentiment.
+for review in final_df['reviewText']:
+    sentiment_score = sw_review_sentiment_score(review)
+    if sentiment_score > 0:
+# #         print('\nPositive Review:', review)
+        predicted_sentiments_senti.append('Positive')
+    elif sentiment_score < 0:
+#         print('\nNegative Review:', review)
+        predicted_sentiments_senti.append('Negative')
+    else:
+#         print('\nNeutral Review:', review)
+        predicted_sentiments_senti.append('Neutral')
+
+
+# In[85]:
+
+
+count = (predicted_sentiments_senti == df_random['label']).value_counts()
+accuracy = count[True]/(count[True]+count[False]) * 100
+accuracy
 
